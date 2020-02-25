@@ -1,7 +1,7 @@
 (** Homework 3
 
-    E(PCF)PS: E (numbers and strings), PCF (primitive recursion), P (products),
-    and S (sums).
+    E(PCF)PS(FPC): E (numbers and strings), PCF (general recursion), P (products),
+    S (sums), FPC (recursive types), and F (parametric polymorphism).
 *)
 
 (**********************************************************************)
@@ -22,7 +22,7 @@ let unimp: string -> 'a = fun s -> failwith ("Unimplemented: " ^ s)
 
 module F = Format
 open Base
-   
+
 let pp_of_fmt (f: F.formatter -> 'a -> unit): 'a -> string = fun a ->
   f F.str_formatter a; F.flush_str_formatter ()
 
@@ -38,6 +38,10 @@ type str = string [@@deriving sexp_of, compare, equal]
 let f_str = F.pp_print_string
 let pp_str: str -> string = fun s -> s
 
+type typvar = string [@@deriving sexp_of, compare, equal]
+let f_typvar = F.pp_print_string
+let pp_typvar: str -> string = fun s -> s
+
 type typ =
   | TNum
   | TStr
@@ -47,7 +51,10 @@ type typ =
   | Prod of typ * typ
   | Void
   | Sum of typ * typ
-         [@@deriving sexp_of, compare, equal]
+  | TVar of typvar
+  | TRec of typvar * typ
+  | All of typvar * typ
+[@@deriving sexp_of, compare, equal] (* automatically derive code *)
 let f_typ f = function
   | TNum -> F.fprintf f "num"
   | _ -> unimp "f_typ"
@@ -76,8 +83,11 @@ type exp =
   | InL of typ * typ * exp
   | InR of typ * typ * exp
   | Case of exp * var * exp * var * exp
-                                      [@@deriving sexp_of, compare, equal]
-let pp_exp_sexp e = pp_of_fmt Ppx_sexp_conv_lib.Sexp.pp_hum (sexp_of_exp e)
+  | Fold of typvar * typ * exp
+  | Unfold of exp
+  | TLam of typvar * exp
+  | TApp of exp * typ
+[@@deriving sexp_of, compare, equal]
 let rec f_exp f =
   function
   | Var x -> F.fprintf f "%a" f_var x
@@ -85,6 +95,12 @@ let rec f_exp f =
   | Plus (e1,e2) -> F.fprintf f "(@[%a@ +@ %a@])" f_exp e1 f_exp e2
   | _ -> unimp "f_exp"
 let pp_exp: exp -> string = pp_of_fmt f_exp
+
+(** An alternative to writing custom pretty-printers is to use a generic s-expression printer. *)
+let f_sexp: F.formatter -> Ppx_sexp_conv_lib.Sexp.t -> unit = Ppx_sexp_conv_lib.Sexp.pp_hum
+
+let pp_exp_sexp e = pp_of_fmt f_sexp (sexp_of_exp e)
+let pp_exp = pp_exp_sexp
 
 (**********************************************************************)
 (** {1 Values} *)
@@ -103,29 +119,37 @@ let emp: typctx = () (* TODO: replace *)
 let lookup: typctx -> var -> typ option = fun gamma x -> unimp "lookup"
 let extend: typctx -> var -> typ -> typctx = fun gamma x tau -> unimp "extend"
 
-let rec exp_typ: typctx -> exp -> typ option = fun gamma ->
+type kindctx = unit (* TODO: replace *)
+let pp_kindctx: kindctx -> string = fun _ -> "todo"
+
+let kemp: kindctx = () (* TODO: replace *)
+let klookup: kindctx -> typvar -> bool = fun delta t -> unimp "klookup"
+let kextend: kindctx -> typvar -> kindctx = fun delta t -> unimp "kextend"
+
+let rec exp_typ: kindctx -> typctx -> exp -> typ option = fun delta gamma ->
   (* Open the Base.Option library for some convenience functions on
      options. Comment out the following line to remove the library
      dependency on Base. *)
   let open Base.Option in
-  (* Let_syntax enables the syntax shown below in the "Times" case,
-     which is similar to Haskell do notation.  Plus and Times cases
-     here are functionally identical, so just choose whichever monad
-     syntax you're more comfortable with.
-   *)
+  (* As an alternative, Let_syntax enables the syntax shown below in
+     the "Times" case, which is similar to Haskell do notation.  Plus
+     and Times cases here are functionally identical, so just choose
+     whichever syntax you're more comfortable with.*)
   let open Base.Option.Let_syntax in
   function
   | Num _ -> Some TNum
   | Plus (e1, e2) ->
-     exp_typ gamma e1 >>= fun tau1 ->
-     exp_typ gamma e2 >>= fun tau2 ->
+     exp_typ delta gamma e1 >>= fun tau1 ->
+     exp_typ delta gamma e2 >>= fun tau2 ->
      some_if (equal_typ tau1 TNum && equal_typ tau2 TNum) TNum
   | Times (e1, e2) ->
-     let%bind tau1 = exp_typ gamma e1 in
-     let%bind tau2 = exp_typ gamma e2 in
+     let%bind tau1 = exp_typ delta gamma e1 in
+     let%bind tau2 = exp_typ delta gamma e2 in
      some_if (equal_typ tau1 TNum && equal_typ tau2 TNum) TNum
   | _ -> unimp "exp_typ"
-       
+
+let rec typ_form: kindctx -> typ -> bool = fun delta tau -> unimp "typ_form" 
+
 (**********************************************************************)
 (** {1 Substitution} *)
 
@@ -148,10 +172,9 @@ let rec eval: exp -> exp = fun e ->
      | _ -> invalid_arg (pp_exp e)
      end
   | _ -> unimp "eval"
-       
+
 (**********************************************************************)
 (** {1 Reduction} *)
 
 let step: exp -> exp = fun e -> unimp "step"
 let steps_pap: typ -> exp -> exp = fun tau e -> unimp "step_pap"
-

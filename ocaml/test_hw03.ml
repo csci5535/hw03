@@ -23,6 +23,9 @@ module type HW03 = sig
   type str = string
   val pp_str : str -> string
 
+  type typvar = string [@@deriving sexp_of, compare, equal]
+  val pp_typvar : str -> string
+
   type typ =
   | TNum
   | TStr
@@ -32,6 +35,9 @@ module type HW03 = sig
   | Prod of typ * typ
   | Void
   | Sum of typ * typ
+  | TVar of typvar
+  | TRec of typvar * typ
+  | All of typvar * typ
   val pp_typ : typ -> string
 
   type exp =
@@ -57,6 +63,10 @@ module type HW03 = sig
   | InL of typ * typ * exp
   | InR of typ * typ * exp
   | Case of exp * var * exp * var * exp
+  | Fold of typvar * typ * exp
+  | Unfold of exp
+  | TLam of typvar * exp
+  | TApp of exp * typ
   val pp_exp : exp -> string
 
   val is_val : exp -> bool
@@ -68,7 +78,15 @@ module type HW03 = sig
   val lookup : typctx -> var -> typ option
   val extend : typctx -> var -> typ -> typctx
 
-  val exp_typ : typctx -> exp -> typ option
+  type kindctx
+  val pp_kindctx: kindctx -> string
+
+  val kemp: kindctx
+  val klookup: kindctx -> typvar -> bool
+  val kextend: kindctx -> typvar -> kindctx
+
+  val exp_typ : kindctx -> typctx -> exp -> typ option
+  val typ_form : kindctx -> typ -> bool
   val subst : exp -> var -> exp -> exp
   val eval : exp -> exp
   val step : exp -> exp
@@ -87,12 +105,12 @@ module Make(HW: HW03) = struct
   let pp_option (pp: 'a -> string): 'a option -> string = function
   | None -> "None"
   | Some a -> F.sprintf "Some @[%a@]" (fun () -> pp) a
-  
+
   (********************************************************************)
   (** {2 Expressions} *)
 
   open HW
-  
+
   let num_1 = Num 1
   let num_2 = Num 2
   let plus_1_1 = Plus (num_1, num_1)
@@ -115,17 +133,19 @@ module Make(HW: HW03) = struct
   let test_exp_typ: test =
     "exp_typ" >:::
       List.map
-        (fun (expected,(gamma,e)) ->
-          let lbl = F.sprintf "(exp_typ %s %s)"
-                      (pp_typctx gamma) (pp_exp e)
+        (fun (expected,(delta,gamma,e)) ->
+          let lbl = F.sprintf "(exp_typ %s %s %s)"
+                      (pp_kindctx delta) (pp_typctx gamma) (pp_exp e)
           in
           let (===) = assert_equal ~printer:(pp_option pp_typ) in
-          lbl >:: (fun _ -> expected === exp_typ gamma e))
+          lbl >:: (fun _ -> expected === exp_typ delta gamma e))
         [
-          Some TNum, (emp, num_1);
-          Some TNum, (emp, plus_1_1);
+          Some TNum, (kemp, emp, num_1);
+          Some TNum, (kemp, emp, plus_1_1);
         ]
 
+  let test_typ_form: test =
+    "typ_form" >::: []
 
   let test_subst: test =
     "subst" >::: []
@@ -158,7 +178,7 @@ module Make(HW: HW03) = struct
     "steps_pap" >:::
       List.fold_right
         (fun ((_,e) as test) acc ->
-          match exp_typ emp e with
+          match exp_typ kemp emp e with
           | None -> acc
           | Some tau ->
              let lblpre = "steps_pap " ^ (pp_typ tau) in
@@ -170,6 +190,7 @@ module Make(HW: HW03) = struct
     "Hw03" >::: [
         test_is_val;
         test_exp_typ;
+        test_typ_form;
         test_subst;
         test_step;
         test_eval;
