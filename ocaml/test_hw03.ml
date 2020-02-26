@@ -38,6 +38,7 @@ module type HW03 = sig
   | TVar of typvar
   | TRec of typvar * typ
   | All of typvar * typ
+
   val pp_typ : typ -> string
 
   type exp =
@@ -87,6 +88,7 @@ module type HW03 = sig
 
   val exp_typ : kindctx -> typctx -> exp -> typ option
   val typ_form : kindctx -> typ -> bool
+
   val subst : exp -> var -> exp -> exp
   val eval : exp -> exp
   val step : exp -> exp
@@ -146,7 +148,6 @@ module Make(HW: HW03) = struct
 
   let test_typ_form: test =
     "typ_form" >::: []
-
   let test_subst: test =
     "subst" >::: []
 

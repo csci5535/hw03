@@ -2,6 +2,7 @@
 
     E(PCF)PS(FPC): E (numbers and strings), PCF (general recursion), P (products),
     S (sums), FPC (recursive types), and F (parametric polymorphism).
+
 *)
 
 (**********************************************************************)
@@ -38,6 +39,7 @@ type str = string [@@deriving sexp_of, compare, equal]
 let f_str = F.pp_print_string
 let pp_str: str -> string = fun s -> s
 
+
 type typvar = string [@@deriving sexp_of, compare, equal]
 let f_typvar = F.pp_print_string
 let pp_typvar: str -> string = fun s -> s
@@ -55,6 +57,7 @@ type typ =
   | TRec of typvar * typ
   | All of typvar * typ
 [@@deriving sexp_of, compare, equal] (* automatically derive code *)
+
 let f_typ f = function
   | TNum -> F.fprintf f "num"
   | _ -> unimp "f_typ"
@@ -88,6 +91,7 @@ type exp =
   | TLam of typvar * exp
   | TApp of exp * typ
 [@@deriving sexp_of, compare, equal]
+
 let rec f_exp f =
   function
   | Var x -> F.fprintf f "%a" f_var x
@@ -172,7 +176,7 @@ let rec eval: exp -> exp = fun e ->
      | _ -> invalid_arg (pp_exp e)
      end
   | _ -> unimp "eval"
-
+  
 (**********************************************************************)
 (** {1 Reduction} *)
 
