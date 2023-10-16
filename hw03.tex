@@ -1,0 +1,498 @@
+\documentclass[12pt]{exam}
+
+\usepackage{fourier}
+\usepackage[T1]{fontenc}
+\usepackage[margin=1in]{geometry}
+
+\usepackage{hyperref}
+\usepackage{xspace}
+\usepackage{tabularx}
+\usepackage{amsmath}
+\usepackage{mathpartir}
+\usepackage{url}
+\usepackage[normalem]{ulem}
+
+%% Listings
+\usepackage{listings}
+\lstdefinestyle{default}{%
+  basicstyle=\ttfamily,%
+  commentstyle=\sl,%
+  keywordstyle=\bf,%
+  columns=fullflexible,%
+  keepspaces=true,%
+  mathescape%
+}
+\lstset{style=default}
+\newcommand{\ocaml}[1]{\lstset{language=[Objective]Caml}\lstinline~#1~}
+\lstnewenvironment{OCaml}
+  {\lstset{language=[Objective]Caml}}
+	{}
+	
+% Power Set (modified from http://gene.science.uva.nl/~sjagerde/latex/)
+\DeclareSymbolFont{eulerletters}{U}{eur}{m}{n}%
+\DeclareMathSymbol{\PowersetSym}{\mathord}{eulerletters}{"7D}%
+\newsavebox{\powersetbox}
+\sbox{\powersetbox}{\mbox{\large\ensuremath{\PowersetSym}}}
+\providecommand{\powerset}{\mathopen{\usebox{\powersetbox}}}
+
+%% Number questions by section
+\renewcommand{\thequestion}{\thesection.\arabic{question}}
+
+%% toggle math mode and text mode for tabular and array
+\newcolumntype{C}{>{$}c<{$}}
+\newcolumntype{L}{>{$}l<{$}}
+\newcolumntype{R}{>{$}r<{$}}
+
+\newcommand{\fmtkw}[1]{\mathtt{#1}}
+
+\newcommand{\Typ}{\ensuremath{\mathsf{Typ}}}
+\newcommand{\typ}{\ensuremath{\mathit{\tau}}}
+\newcommand{\numtyp}{\ensuremath{\fmtkw{num}}}
+\newcommand{\booltyp}{\ensuremath{\fmtkw{bool}}}
+
+\newcommand{\Expr}{\ensuremath{\mathsf{Exp}}}
+\newcommand{\expr}{\ensuremath{\mathit{e}}}
+
+\newcommand{\addra}[1]{\ensuremath{\fmtkw{addr}[#1]}}
+\newcommand{\addr}{\ensuremath{\mathit{a}}}
+\newcommand{\numa}[1]{\ensuremath{\fmtkw{num}[#1]}}
+\newcommand{\num}{\ensuremath{\mathit{n}}}
+\newcommand{\boola}[1]{\ensuremath{\fmtkw{bool}[#1]}}
+\newcommand{\bool}{\ensuremath{\mathit{b}}}
+\newcommand{\plusa}[2]{\ensuremath{\fmtkw{plus}(#1; #2)}}
+\newcommand{\plusc}[2]{\ensuremath{#1 \mathbin{\fmtkw{+}} #2}}
+\newcommand{\timesa}[2]{\ensuremath{\fmtkw{times}(#1; #2)}}
+\newcommand{\timesc}[2]{\ensuremath{#1 \mathbin{\fmtkw{*}} #2}}
+\newcommand{\eqa}[2]{\ensuremath{\fmtkw{eq}(#1; #2)}}
+\newcommand{\eqc}[2]{\ensuremath{#1 \mathrel{\fmtkw{==}} #2}}
+\newcommand{\lea}[2]{\ensuremath{\fmtkw{le}(#1; #2)}}
+\newcommand{\lec}[2]{\ensuremath{#1 \mathrel{\fmtkw{<=}} #2}}
+\newcommand{\nota}[1]{\ensuremath{\fmtkw{not}(#1)}}
+\newcommand{\notc}[1]{\ensuremath{\mathord{\fmtkw{!}}#1}}
+\newcommand{\anda}[2]{\ensuremath{\fmtkw{and}(#1; #2)}}
+\newcommand{\andc}[2]{\ensuremath{#1 \mathbin{\fmtkw{\&\&}} #2}}
+\newcommand{\ora}[2]{\ensuremath{\fmtkw{or}(#1; #2)}}
+\newcommand{\orc}[2]{\ensuremath{#1 \mathbin{\fmtkw{||}} #2}}
+
+\newcommand{\Cmd}{\ensuremath{\mathsf{Cmd}}}
+\newcommand{\cmd}{\ensuremath{\mathit{c}}}
+\newcommand{\skipa}{\ensuremath{\fmtkw{skip}}}
+\newcommand{\seta}[2]{\ensuremath{\fmtkw{set}[#1](#2)}}
+\newcommand{\setc}[2]{\ensuremath{#1 \mathrel{\fmtkw{:=}} #2}}
+\newcommand{\seqa}[2]{\ensuremath{\fmtkw{seq}(#1; #2)}}
+\newcommand{\seqc}[2]{\ensuremath{#1\fmtkw{;}\;#2}}
+\newcommand{\ifa}[3]{\ensuremath{\fmtkw{if}(#1; #2; #3)}}
+\newcommand{\ifc}[3]{\ensuremath{\fmtkw{if}\;#1\;\fmtkw{then}\;#2\;\fmtkw{else}\;#3}}
+\newcommand{\whilea}[2]{\ensuremath{\fmtkw{while}(#1; #2)}}
+\newcommand{\whilec}[2]{\ensuremath{\fmtkw{while}\;#1\;\fmtkw{do}\;#2}}
+
+\newcommand{\Addr}{\ensuremath{\mathsf{Addr}}}
+
+\newcommand{\val}{\ensuremath{\mathit{v}}}
+\newcommand{\Val}{\ensuremath{\mathsf{Val}}}
+
+\newcommand{\store}{\ensuremath{\sigma}}
+\newcommand{\Store}{\ensuremath{\mathsf{Store}}}
+\newcommand{\storelet}[2]{\ensuremath{#1 \hookrightarrow #2}}
+\newcommand{\xstore}[3]{#1, \storelet{#2}{#3}}
+
+\newcommand{\IMP}{\textbf{\textsf{IMP}}\xspace}
+
+\newcommand{\E}{\textbf{\textsf{E}}\xspace}
+\newcommand{\T}{\textbf{\textsf{T}}\xspace}
+\renewcommand{\P}{\textbf{\textsf{P}}\xspace}
+\renewcommand{\S}{\textbf{\textsf{S}}\xspace}
+\newcommand{\ET}{\textbf{\textsf{ET}}\xspace}
+\newcommand{\ETP}{\textbf{\textsf{ETP}}\xspace}
+\newcommand{\ETPS}{\textbf{\textsf{ETPS}}\xspace}
+\newcommand{\PCF}{\textbf{\textsf{PCF}}\xspace}
+\newcommand{\FPC}{\textbf{\textsf{FPC}}\xspace}
+\newcommand{\F}{\textbf{\textsf{F}}\xspace}
+
+\newcommand{\state}[2]{\langle #1, #2 \rangle}
+
+\newcommand{\hasType}[2]{\ensuremath{#1 : #2}}
+\newcommand{\hypJ}[2]{\ensuremath{#1 \vdash #2}}
+\newcommand{\isOk}[1]{\ensuremath{#1\;\mathsf{ok}}}
+\newcommand{\eval}[2]{\ensuremath{#1 \Downarrow #2}}
+\newcommand{\step}[2]{\ensuremath{#1 \longmapsto #2}}
+\newcommand{\stepspap}[3][\typ]{\ensuremath{#2 \hookrightarrow_{:#1} #3}}
+\newcommand{\isVal}[1]{\ensuremath{#1\;\mathsf{val}}}
+\newcommand{\isFinal}[1]{\ensuremath{#1\;\mathsf{final}}}
+\newcommand{\isType}[1]{\ensuremath{#1\;\mathsf{type}}}
+\newcommand{\matchesLeaving}[3]{\ensuremath{#1\;\mathsf{matches}\;#2\;\mathsf{leaving}\;#3}}
+
+\newcommand{\even}{\operatorname{even}}
+
+\newcommand{\rechar}[1]{\ensuremath{\texttt{`}#1\texttt{'}}}
+\newcommand{\rechart}[1]{\ensuremath{\texttt{`}\mathtt{#1}\texttt{'}}}
+
+\runningfooter{}{\thepage}{}
+\title{CSCI 5535: Homework Assignment 3: Compilation and Interpretation}
+\date{Fall 2023: Due Friday, \sout{October 27} November 3, 2023}
+\author{}
+
+\begin{document}
+\maketitle
+
+This homework has two parts.
+%
+The first asks you to consider the relationship between a denotational formalization and an operational one.
+%
+The second asks you to extend your language implementation in OCaml to further gain experience translating formalization to implementation.
+
+Recall the evaluation guideline from the course syllabus.
+\begin{quote}\em
+  Both your ideas and also the clarity with which they are expressed
+  matter---both in your English prose and your code!
+
+  We will consider the following criteria in our grading: 
+  \begin{itemize}
+    \item \emph{How well does your submission answer the questions?}
+      For example, a common mistake is to give an example when a question
+      asks for an explanation.  An example may be useful in your
+      explanation, but it should not take the place of the explanation.
+    \item \emph{How clear is your submission?}  If we cannot
+      understand what you are trying to say, then we cannot give you
+      points for it.  Try reading your answer aloud to yourself or a
+      friend; this technique is often a great way to identify holes in
+      your reasoning.  For code, not every program that "works"
+      deserves full credit. We must be able to read and understand
+      your intent.  Make sure you state any preconditions or
+      invariants for your functions.
+  \end{itemize}
+\end{quote}
+
+\paragraph{Submission Instructions.}
+
+Typesetting is preferred but scanned, clearly legible handwritten write-ups are acceptable. Please no other formats---no
+\texttt{.doc} or \texttt{.docx}. You may use whatever tool you wish (e.g., \LaTeX, Word, markdown, plain text, pencil+paper) as long as it is legibly
+converted into a \texttt{pdf}.
+
+\section{Denotational Semantics: \IMP}
+
+Recall the syntax chart for \IMP:
+\[\begin{array}{lrcllL}
+\Typ & \typ & ::= & \numtyp & \numtyp & numbers
+\\
+&&& \booltyp & \booltyp & booleans
+\\
+\Expr & \expr & ::= & \addra{\addr} & \addr & addresses (or ``assignables'') 
+\\ 
+&&& \numa{\num} & \num & numeral
+\\
+&&& \boola{\bool} & \bool & boolean
+\\
+&&& \plusa{\expr_1}{\expr_2} & \plusc{\expr_1}{\expr_2} & addition
+\\
+&&& \timesa{\expr_1}{\expr_2} & \timesc{\expr_1}{\expr_2} & multiplication
+\\
+&&& \eqa{\expr_1}{\expr_2} & \eqc{\expr_1}{\expr_2} & equal
+\\
+&&& \lea{\expr_1}{\expr_2} & \lec{\expr_1}{\expr_2} & less-than-or-equal
+\\
+&&& \nota{\expr_1} & \notc{\expr_1} & negation
+\\
+&&& \anda{\expr_1}{\expr_2} & \andc{\expr_1}{\expr_2} & conjunction
+\\
+&&& \ora{\expr_1}{\expr_2} & \orc{\expr_1}{\expr_2} & disjunction
+\\
+\Cmd & \cmd & ::= & \seta{\addr}{\expr} & \setc{\addr}{\expr} & assignment
+\\
+&&& \skipa & \skipa & skip
+\\
+&&& \seqa{\cmd_1}{\cmd_2} & \seqc{\cmd_1}{\cmd_2} & sequencing
+\\
+&&& \ifa{\expr}{\cmd_1}{\cmd_2} & \ifc{\expr}{\cmd_1}{\cmd_2} & conditional
+\\
+&&& \whilea{\expr}{\cmd_1} & \whilec{\expr}{\cmd_1} & looping
+\\
+\Addr & \addr
+\end{array}\]
+As before, addresses $\addr$ represent static memory store locations and are drawn from some unbounded set $\Addr$ and all memory locations only store numbers. A store $\store$ is thus a mapping from addresses to numbers, written as follows:
+\[\begin{array}{lrcl}
+\Store & \store & ::= & \cdot \mid \xstore{\store}{\addr}{\num}
+\end{array}\]
+
+The semantics of \IMP{} is as a formalized in the previous assignment operationally. In this section, we will consider a denotational formalization.
+
+\newcommand{\denote}[1]{\llbracket #1 \rrbracket}
+\newcommand{\defeq}{\ensuremath{\mathrel{\smash{\stackrel{\mbox{\normalfont\tiny def}}{=}}}}}
+\newcommand{\Set}[1]{\left\{ #1 \right\}}
+\newcommand{\SetST}[2]{\Set{\,#1 \,\left|\vphantom{#1#2}\right.\, #2\,}}
+
+The set of values \Val{} are the disjoint union of numbers and booleans:
+\[\begin{array}{lrcl}
+\Val & \val ::=  \numa{\num} \mid \boola{\bool} \;.
+\end{array}\]
+
+\begin{questions}
+\question
+\begin{parts}
+\part Formalize the dynamics of \IMP as two denotational functions.
+\[\begin{array}{rcl}
+\denote{\cdot} & : & \Expr \rightarrow (\Store \rightharpoonup \Val) \\
+\denote{\cdot} & : & \Cmd \rightarrow (\Store \rightharpoonup \Store) \\
+\end{array}\]
+%
+\part Prove that your denotational definitions coincide with your operational ones.
+\begin{subparts}
+\subpart State the lemma that your definitions for expressions coincide.
+
+\subpart Prove the equivalence of your definitions for commands, that is,
+\begin{quote}
+  $(\store, \store') \in \denote{\cmd}$ if and only if $\eval{\state{\cmd}{\store}}{\store'}$.
+\end{quote}
+Begin by copying your definition of $\eval{\state{\cmd}{\store}}{\store'}$ from your previous homework submission.
+\end{subparts}
+\end{parts}
+
+\question \textbf{Manual Program Verification}.  Prove the following statement
+about the denotational semantics of \IMP.
+\begin{quote}
+If
+\( \denote{\whilec{\expr}{\setc{\addr}{\plusc{\addr}{2}}}}\;\sigma \;=\; \sigma'
+\)
+such that $\even(\store(\addr))$, then $\even(\store'(\addr))$
+\end{quote}
+Unlike in the previous assignment, this time you should use your denotational semantics for the proof. \emph{Hint}: your proof should proceed by mathematical induction.
+\end{questions}
+
+\section{Comparing Operational and Denotational Semantics}
+
+Regular expressions are
+commonly used as abstractions for string matching. Here is an abstract
+syntax for regular expressions:
+\[
+\begin{array}{rcll}
+r & ::= & \rechar{c}  & \mbox{singleton -- matches the character $c$} \\
+  & |   & \mathsf{empty} & \mbox{skip -- matches the empty string} \\
+  & |   & r_1~r_2        & \mbox{concatenation -- matches $r_1$ followed by
+  $r_2$ } \\
+  & |   & r_1~|~r_2      & \mbox{or -- matches $r_1$ or $r_2$ } \\
+  & |   & r *            & \mbox{Kleene star -- matches 0 or more occurrences of $r$ } \\
+  \\
+
+  & |   & \mathtt{.}     & \mbox{matches any single character} \\
+  & |   & \mathtt{[}\rechar{c_1} \mathtt{-}\rechar{c_2}\mathtt{]}
+  & \mbox{matches any character between $c_1$ and $c_2$ inclusive} \\
+  & |   & r +            & \mbox{matches 1 or more occurrences of $r$ } \\
+  & |   & r ?            & \mbox{matches 0 or 1 occurrence of $r$ } \\
+\end{array}
+\]
+We will call the first five cases the \emph{primary} forms of regular
+expressions. The last four cases can be defined in terms of the first five.
+We also give an abstract grammar for strings (modeled as lists of
+characters): 
+\[
+\begin{array}{rcll}
+s & ::= & \cdot       & \mbox{empty string} \\
+  &   | & c s  & \mbox{string with first character $c$ and
+  other characters $s$ } 
+\end{array}
+\]
+We write $\mathtt{``bye"}$ as shorthand for $\mathtt{b}
+\mathtt{y} \mathtt{e} \cdot$. 
+
+We introduce the following big-step operational semantics judgment for
+regular expression matching:
+\[
+\matchesLeaving{r}{s}{s'}
+\]
+The interpretation of the judgment is that the regular expression $r$
+matches some prefix of the string $s$, leaving the suffix $s'$
+unmatched.  If $s' = \cdot$, then $r$ matched $s$ exactly. For
+example,
+\[
+\matchesLeaving{
+\rechart{h} ( \rechart{e} + )
+}{
+\mathtt{``hello"}
+}{
+\mathtt{``llo"}
+}
+\]
+Note that this operational semantics may be considered
+\emph{non-deterministic} because we expect to be able to derive all three
+of the following: 
+\[
+\begin{array}{l} 
+  \matchesLeaving{
+    \mathtt{( \rechart{h}~|~\rechart{e} ) *}
+  }{
+    \mathtt{``hello"} 
+  }{
+    \mathtt{``hello"}
+  }
+  \\
+  \matchesLeaving{
+    \mathtt{( \rechart{h}~|~\rechart{e} ) *}
+  }{
+    \mathtt{``hello"} 
+  }{
+    \mathtt{``ello"}
+  }
+  \\
+  \matchesLeaving{
+    \mathtt{( \rechart{h}~|~\rechart{e} ) *}
+  }{
+    \mathtt{``hello"} 
+  }{
+    \mathtt{``llo"}
+  }
+\end{array}
+\]
+We leave the rules of inference defining this judgment unspecified.
+You may consider giving this set of inference rules an optional
+exercise.
+
+\newcommand{\Str}{\ensuremath{\mathsf{Str}}}
+ 
+Instead, we will use \emph{denotational semantics} to model the fact that
+a regular expression can match a string leaving many possible suffixes. Let
+$\Str$ be the set of all strings, let $\powerset(\Str)$ be the powerset of $\Str$,
+and let $\mathsf{RE}$ range over regular expressions. We introduce a
+semantic function:
+\[
+\denote{\cdot} : \mathsf{RE} \rightarrow (\Str \rightarrow \powerset(\Str))
+\]
+The interpretation is that $\denote{r}$ is a function that takes in a
+string-to-be-matched and returns a set of suffixes. We might intuitively
+define $\denote{\cdot}$ as follows:
+\[
+\denote{r} = \lambda s.\, \SetST{ s' }{ \matchesLeaving{r}{s}{s'} }
+\]
+In general, however, one should not define the denotational semantics in
+terms of the operational semantics. Here are two correct semantic functions: 
+\[ \begin{array}{rcl} 
+\denote{\rechar{c}} & \defeq & \lambda s.\, \SetST{ s' }{ s = \rechar{c} :: s' } \\
+\denote{\mathsf{empty}}& \defeq & \lambda s.\, \Set{ s } \\
+\end{array} \]
+
+\begin{questions}
+\question
+Give the denotational semantics functions for the other three primal
+regular expressions. Your semantics functions \emph{may not} reference the
+operational semantics. 
+
+\question We want to update our operational semantics for regular
+expressions to capture multiple suffixes. We want our new operational
+semantics to be deterministic---it should give the same
+answer as the denotational semantics above. We introduce a new
+judgment as follows:
+\[
+\matchesLeaving{r}{s}{S}
+\]
+where $S$ is a meta-variable for a set of strings.
+And use rules of inference like the following: 
+\begin{mathpar}
+\infer
+{ } 
+{ \matchesLeaving{
+  \rechar{c}
+  }{ s }{
+    \SetST{ s' }{ s = \rechar{c} :: s' }
+  }
+}
+
+\infer
+  { } 
+  { \matchesLeaving{\mathsf{empty}}{s}{ \Set{s} } } 
+
+\infer
+  { 
+  \matchesLeaving{r_1}{s}{S_1}
+  \\
+  \matchesLeaving{r_2}{s}{S_2}
+  }
+  {
+  \matchesLeaving{r_1 ~|~ r_2}{ s }{ S_1 \cup S_2 }
+  } 
+\end{mathpar}
+Do one of the following:
+\begin{itemize}
+\item \emph{Either} give operational semantics rules of inference for
+  $r*$ and $r_1\;r_2$. Your operational semantics rules may \emph{not}
+  reference the denotational semantics. You may \emph{not} place a
+  derivation inside a set constructor, as in: $\SetST{ s }{ \exists S.\;
+  \matchesLeaving{r}{s}{S} }$. Each
+  inference rule must have a finite and fixed set of hypotheses.
+\item \emph{Or} argue in one or two sentences that it cannot be done
+correctly in the given framework. Back up your argument by presenting two
+attempted but ``wrong'' rules of inference and show that each one is either
+unsound or incomplete with respect to our intuitive notion of regular
+expression matching. 
+\end{itemize}
+Part of doing research in any area is getting stuck. When you get
+stuck, you must be able to recognize whether ``you are just missing
+something'' or ``the problem is actually impossible.''
+\end{questions}
+
+\section{Implementation: General Recursion and Polymorphism}
+
+In this section, we will reformulate language~\ETPS so that it admits general recursion (and thus non-terminating programs) and parametric polymorphism.
+
+Follow the ``Translating a Language to OCaml'' guidance from the previous homework assignment. That is, we will implement functions that define both the static and dynamic semantics of the language.
+
+\[\begin{array}{l@{\qquad}L}
+[\expr'/x]\expr & \ocaml{val subst : exp -> var -> exp -> exp} \\
+\isVal{\expr} & \ocaml{val is_val : exp -> bool} \\
+\hypJ{\Gamma}{\hasType{\expr}{\typ}} & \ocaml{val exp_typ : typctx -> exp -> typ option} \\
+\step{\expr}{\expr'} & \ocaml{val step : exp -> exp} \\
+\stepspap{\expr}{\expr'} & \ocaml{val steps_pap : typ -> exp -> exp}
+\end{array}\]
+
+To avoid redundancy in the assignment, you may skip implementing the big-step evaluator $\eval{\expr}{\expr'}$ in this assignment.
+
+\begin{questions}
+  \question Adapt your language~\ETPS with general recursion. That is, replace the language~\T portion (primitive recursion with natural numbers) with language~\PCF from Chapter 19 of \emph{PFPL} (general recursion with natural numbers).
+  \question Add recursive types (i.e., language~\FPC from Chapter 20 of \emph{PFPL}). While type $\fmtkw{nat}$ of natural numbers is definable in~\FPC, leave the primitive $\fmtkw{nat}$ in for convenience in testing.
+  \question Add parametric polymorphism (i.e., System~\F from Chapter 16 of \emph{PFPL}). Note that System~\F extends the typing judgment with an additional context for type variables:
+  \[\begin{array}{rclL}
+   \Delta & ::= & \cdot \mid \Delta, \isType{t} & kind contexts \\
+   t & & & type variables \\
+  \end{array}\]
+  and a well-formedness judgment for types $\hypJ{\Delta}{\isType{\typ}}$. We thus have to update our implementation accordingly:
+  \[\begin{array}{l@{\qquad}L}
+  t & \ocaml{type typvar = string} \\
+  \Delta & \ocaml{type kindctx} \\
+  \hypJ{\Delta\;\Gamma}{\hasType{\expr}{\typ}} & \ocaml{val exp_typ : kindctx -> typctx -> exp -> typ option} \\
+  \hypJ{\Delta}{\isType{\typ}} & \ocaml{val typ_form : kindctx -> typ -> bool}
+  \end{array}\]
+\end{questions}
+
+Explain your testing strategy and justify that your test cases attempt to cover your code as thoroughly as possible (e.g., they attempt to cover different execution paths of your implementation with each test). Write this explanation as comments alongside your test code.
+
+\section{Final Project Preparation: Proposal}
+
+\begin{questions}
+  \question \textbf{Reading Papers}. Continue reading the papers that you chose in Homework 2. For each of the five papers, and for each question below, write two concise sentences:
+\begin{parts}
+\part Why did \emph{you} select this paper?
+\part What is the ``main idea'' of the paper?
+\part How well is this main idea communicated to you when you read the
+  \emph{first two sections and conclusion} of paper, and skimmed the
+  rest?  In particular, explain what aspects seem important, are which
+  are clear versus unclear.  You may want to read deeper into the
+  details of the paper body if these beginning and ending sections do
+  not make the main ideas clear; make a note if this is required.
+\end{parts}
+  Take a look at Keshav's ``\href{http://ccr.sigcomm.org/online/files/p83-keshavA.pdf}{How to Read a Paper}''\footnote{S. Keshav. 2007. How to read a paper. SIGCOMM Comput. Commun. Rev. 37, 3 (July 2007), 83-84. \url{http://ccr.sigcomm.org/online/files/p83-keshavA.pdf}} for further advice on reading papers.
+  
+  \question
+\textbf{Proposal}. Continue thinking about your class project.
+%
+Write an updated explanation of your plan (expanding and revising as necessary), and what you hope to accomplish with your project by the end of the semester. That is, on what artifact do you want to be graded? By writing your plan now, you are also generating a draft of part of your final report.
+
+Here are questions that you should address in your project proposal. You will have the opportunity to revise your proposal in the next assignment, but the more concrete your proposal is early on, the better the feedback you are likely to receive.
+
+\begin{parts}
+  \part Define the problem that you will solve as concretely as possible. Provide a scope of expected and potential results. Give a few example programs that exhibit the problem that you are trying to solve.
+  \part What is the general approach that you intend to use to solve the problem?
+  \part Why do you think that approach will solve the problem? What resources (papers, book chapters, etc.) do you plan to base your solution on? Is there one in particular that you plan to follow? What about your solution will be similar? What will be different?
+  \part How do you plan to demonstrate your idea?
+  \part How will you evaluate your idea? What will be the measurement for success?
+\end{parts}
+\end{questions}
+
+\end{document}
